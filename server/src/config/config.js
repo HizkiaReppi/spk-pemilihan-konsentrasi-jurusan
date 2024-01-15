@@ -20,6 +20,9 @@ const config = {
   redis: {
     host: process.env.REDIS_SERVER,
   },
+  jwt: {
+    secret: process.env.SECRET_KEY,
+  },
 };
 
 export default config;

@@ -1,12 +1,12 @@
-/* eslint-disable import/prefer-default-export */
 import bcrypt from 'bcrypt';
 import { v4 as uuid } from 'uuid';
-import { registerUserValidation } from '../validators/UserValidation.js';
+import { loginUserValidation, registerUserValidation } from '../validators/UserValidation.js';
 import validate from '../validators/validation.js';
 import ClientError from '../errors/ClientError.js';
 import InvariantError from '../errors/InvariantError.js';
 import database from '../utils/database.js';
 import { isEmailExists, isUsernameExists } from '../utils/helpersModel.js';
+import { generateToken } from '../utils/jwt.js';
 
 export const registerService = async (payload) => {
   const { fullname, username, email, password } = validate(registerUserValidation, payload);
@@ -34,39 +34,27 @@ export const registerService = async (payload) => {
   return rows[0];
 };
 
-// export const login = async (payload) => {
-//   const loginRequest = validate(loginUserValidation, payload);
+export const loginService = async (payload) => {
+  const { email, password } = validate(loginUserValidation, payload);
 
-//   const user = await prismaClient.user.findUnique({
-//     where: {
-//       username: loginRequest.username,
-//     },
-//     select: {
-//       username: true,
-//       password: true,
-//     },
-//   });
+  const checkUser = {
+    text: 'SELECT * FROM users WHERE email = $1 LIMIT 1',
+    values: [email],
+  };
 
-//   if (!user) {
-//     throw new ResponseError(401, 'Username or password wrong');
-//   }
+  const { rows } = await database.query(checkUser);
 
-//   const isPasswordValid = await bcrypt.compare(loginRequest.password, user.password);
+  if (rows.length < 1) {
+    throw new ClientError('Username or password wrong', 401);
+  }
 
-//   if (!isPasswordValid) {
-//     throw new ResponseError(401, 'Username or password wrong');
-//   }
+  const isPasswordValid = await bcrypt.compare(password, rows[0].password);
 
-//   const token = uuid().toString();
-//   return prismaClient.user.update({
-//     where: {
-//       username: user.username,
-//     },
-//     data: {
-//       token,
-//     },
-//     select: {
-//       token: true,
-//     },
-//   });
-// };
+  if (!isPasswordValid) {
+    throw new ClientError('Username or password wrong', 401);
+  }
+
+  const token = generateToken(rows[0]);
+
+  return { token, expiresIn: '1h' };
+};
