@@ -37,3 +37,7 @@ export const loginUserValidation = Joi.object({
     'string.min': 'Password must be at least 6 characters long',
   }),
 });
+
+export const getUserByIdValidation = Joi.object({
+  id: Joi.string().uuid().required(),
+});

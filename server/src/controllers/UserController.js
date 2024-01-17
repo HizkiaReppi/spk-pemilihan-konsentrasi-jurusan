@@ -1,4 +1,4 @@
-import { registerService, loginService, getAllUsersService } from '../services/UserService.js';
+import { registerService, loginService, getAllUsersService, getUserByIdService } from '../services/UserService.js';
 import logging from '../utils/logging.js';
 
 export const register = async (req, res, next) => {
@@ -54,6 +54,23 @@ export const getAllUsers = async (req, res, next) => {
         page,
         totalData: parseInt(total, 10),
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getUserById = async (req, res, next) => {
+  try {
+    const data = await getUserByIdService(req.params);
+
+    logging.info('Get User By Id Success');
+
+    res.status(200).json({
+      status: true,
+      code: 200,
+      message: 'Get User By Id Success',
+      data,
     });
   } catch (error) {
     next(error);

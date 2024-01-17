@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { v4 as uuid } from 'uuid';
-import { loginUserValidation, registerUserValidation } from '../validators/UserValidation.js';
+import { getUserByIdValidation, loginUserValidation, registerUserValidation } from '../validators/UserValidation.js';
 import validate from '../validators/validation.js';
 import ClientError from '../errors/ClientError.js';
 import InvariantError from '../errors/InvariantError.js';
@@ -74,4 +74,21 @@ export const getAllUsersService = async (perPage, page) => {
   const { rowCount: total } = await database.query(countTotal);
 
   return { data, total };
+};
+
+export const getUserByIdService = async (id) => {
+  const { id: userId } = validate(getUserByIdValidation, id);
+
+  const query = {
+    text: 'SELECT * FROM users WHERE id = $1 LIMIT 1',
+    values: [userId],
+  };
+
+  const { rows } = await database.query(query);
+
+  if (rows.length < 1) {
+    throw new ClientError('User not found', 404);
+  }
+
+  return rows[0];
 };
