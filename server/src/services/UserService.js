@@ -58,3 +58,20 @@ export const loginService = async (payload) => {
 
   return { token, expiresIn: '1h' };
 };
+
+export const getAllUsersService = async (perPage, page) => {
+  const query = {
+    text: 'SELECT id, fullname, username, email FROM users LIMIT $1 OFFSET $2',
+    values: [perPage, (page - 1) * perPage],
+  };
+
+  const { rows: data } = await database.query(query);
+
+  const countTotal = {
+    text: 'SELECT * FROM users',
+  };
+
+  const { rowCount: total } = await database.query(countTotal);
+
+  return { data, total };
+};
