@@ -11,3 +11,11 @@ export const verifyToken = (token) => {
     throw new Error('Invalid token');
   }
 };
+
+const blacklist = new Set();
+
+export const addToBlacklist = (token) => {
+  blacklist.add(token);
+};
+
+export const isTokenBlacklisted = (token) => blacklist.has(token);

@@ -1,6 +1,6 @@
 /* eslint-disable consistent-return */
 import ClientError from '../errors/ClientError.js';
-import { verifyToken } from '../utils/jwt.js';
+import { isTokenBlacklisted, verifyToken } from '../utils/jwt.js';
 
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -8,6 +8,11 @@ const authMiddleware = (req, res, next) => {
 
   if (!token) {
     const error = new ClientError('Token Not Found', 401);
+    return next(error);
+  }
+
+  if (isTokenBlacklisted(token)) {
+    const error = new ClientError('Unauthorized - Token has been revoked', 401);
     return next(error);
   }
 

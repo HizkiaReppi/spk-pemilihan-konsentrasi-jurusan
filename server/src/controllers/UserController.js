@@ -5,6 +5,7 @@ import {
   getUserByIdService,
   updateUserService,
 } from '../services/UserService.js';
+import { addToBlacklist } from '../utils/jwt.js';
 import logging from '../utils/logging.js';
 import { getAllUsersValidation } from '../validators/UserValidation.js';
 import validate from '../validators/validation.js';
@@ -37,6 +38,25 @@ export const login = async (req, res, next) => {
       code: 200,
       message: 'Login Success',
       data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logout = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1];
+
+    addToBlacklist(token);
+
+    logging.info('Logout Success');
+
+    res.status(200).json({
+      status: true,
+      code: 200,
+      message: 'Logout Success',
     });
   } catch (error) {
     next(error);
