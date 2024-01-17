@@ -1,6 +1,12 @@
+/* eslint-disable no-use-before-define */
 import bcrypt from 'bcrypt';
 import { v4 as uuid } from 'uuid';
-import { getUserByIdValidation, loginUserValidation, registerUserValidation } from '../validators/UserValidation.js';
+import {
+  getUserByIdValidation,
+  loginUserValidation,
+  registerUserValidation,
+  updateUserValidation,
+} from '../validators/UserValidation.js';
 import validate from '../validators/validation.js';
 import ClientError from '../errors/ClientError.js';
 import InvariantError from '../errors/InvariantError.js';
@@ -91,4 +97,64 @@ export const getUserByIdService = async (id) => {
   }
 
   return rows[0];
+};
+
+export const updateUserService = async (id, payload) => {
+  const { id: userId } = validate(getUserByIdValidation, id);
+  // eslint-disable-next-line max-len
+  const { fullname, username, email, role, oldPassword, newPassword } = validate(updateUserValidation, payload);
+
+  const query = {
+    text: 'UPDATE users SET fullname = $1, username = $2, email = $3, role = $4 WHERE id = $5 RETURNING id, fullname, username, email',
+    values: [fullname, username, email, role, userId],
+  };
+
+  const { rows } = await database.query(query);
+
+  if (newPassword) {
+    await _verifyPassword(userId, oldPassword);
+    await _updatePasswordService(userId, newPassword);
+  }
+
+  if (rows.length < 1) {
+    throw new ClientError('User not found', 404);
+  }
+
+  return rows[0];
+};
+
+const _updatePasswordService = async (id, password) => {
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const query = {
+    text: 'UPDATE users SET password = $1 WHERE id = $2 RETURNING id, fullname, username, email',
+    values: [hashedPassword, id],
+  };
+
+  const { rows } = await database.query(query);
+
+  if (rows.length < 1) {
+    throw new ClientError('User not found', 404);
+  }
+
+  return rows[0];
+};
+
+const _verifyPassword = async (id, password) => {
+  const query = {
+    text: 'SELECT password FROM users WHERE id = $1 LIMIT 1',
+    values: [id],
+  };
+
+  const { rows } = await database.query(query);
+
+  if (rows.length < 1) {
+    throw new ClientError('User not found', 404);
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, rows[0].password);
+
+  if (!isPasswordValid) {
+    throw new ClientError('Old password wrong', 401);
+  }
 };

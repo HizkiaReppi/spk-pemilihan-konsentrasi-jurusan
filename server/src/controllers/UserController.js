@@ -1,4 +1,10 @@
-import { registerService, loginService, getAllUsersService, getUserByIdService } from '../services/UserService.js';
+import {
+  registerService,
+  loginService,
+  getAllUsersService,
+  getUserByIdService,
+  updateUserService,
+} from '../services/UserService.js';
 import logging from '../utils/logging.js';
 import { getAllUsersValidation } from '../validators/UserValidation.js';
 import validate from '../validators/validation.js';
@@ -71,6 +77,23 @@ export const getUserById = async (req, res, next) => {
       status: true,
       code: 200,
       message: 'Get User By Id Success',
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateUserById = async (req, res, next) => {
+  try {
+    const data = await updateUserService(req.params, req.body);
+
+    logging.info('Update User Success');
+
+    res.status(200).json({
+      status: true,
+      code: 200,
+      message: 'Update User Success',
       data,
     });
   } catch (error) {
