@@ -38,6 +38,11 @@ export const loginUserValidation = Joi.object({
   }),
 });
 
+export const getAllUsersValidation = Joi.object({
+  perPage: Joi.number().integer().min(1).default(10),
+  page: Joi.number().integer().min(1).default(1),
+});
+
 export const getUserByIdValidation = Joi.object({
   id: Joi.string().uuid().required(),
 });

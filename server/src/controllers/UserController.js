@@ -1,5 +1,7 @@
 import { registerService, loginService, getAllUsersService, getUserByIdService } from '../services/UserService.js';
 import logging from '../utils/logging.js';
+import { getAllUsersValidation } from '../validators/UserValidation.js';
+import validate from '../validators/validation.js';
 
 export const register = async (req, res, next) => {
   try {
@@ -37,8 +39,7 @@ export const login = async (req, res, next) => {
 
 export const getAllUsers = async (req, res, next) => {
   try {
-    const perPage = parseInt(req.query.perPage, 10) || 10;
-    const page = parseInt(req.query.page, 10) || 1;
+    const { perPage, page } = validate(getAllUsersValidation, req.query);
 
     const { data, total } = await getAllUsersService(perPage, page);
 
