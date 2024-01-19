@@ -4,6 +4,7 @@ import {
   getAllUsersService,
   getUserByIdService,
   updateUserService,
+  deleteUserService,
 } from '../services/UserService.js';
 import { addToBlacklist } from '../utils/jwt.js';
 import logging from '../utils/logging.js';
@@ -115,6 +116,22 @@ export const updateUserById = async (req, res, next) => {
       code: 200,
       message: 'Update User Success',
       data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteUserById = async (req, res, next) => {
+  try {
+    await deleteUserService(req.params);
+
+    logging.info('Delete User Success');
+
+    res.status(200).json({
+      status: true,
+      code: 200,
+      message: 'Delete User Success',
     });
   } catch (error) {
     next(error);

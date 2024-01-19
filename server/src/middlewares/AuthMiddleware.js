@@ -35,4 +35,13 @@ export const userMiddleware = (req, res, next) => {
   next();
 };
 
+export const adminMiddleware = (req, res, next) => {
+  const { role } = req.user;
+  if (role !== 'admin') {
+    const error = new ClientError('Access Forbidden', 403);
+    return next(error);
+  }
+  next();
+};
+
 export default authMiddleware;

@@ -9,6 +9,7 @@ import {
 } from '../validators/UserValidation.js';
 import validate from '../validators/validation.js';
 import ClientError from '../errors/ClientError.js';
+import NotFoundError from '../errors/NotFoundError.js';
 import InvariantError from '../errors/InvariantError.js';
 import database from '../utils/database.js';
 import { isEmailExists, isUsernameExists } from '../utils/helpersModel.js';
@@ -93,7 +94,7 @@ export const getUserByIdService = async (id) => {
   const { rows } = await database.query(query);
 
   if (rows.length < 1) {
-    throw new ClientError('User not found', 404);
+    throw new NotFoundError('User not found');
   }
 
   return rows[0];
@@ -117,10 +118,23 @@ export const updateUserService = async (id, payload) => {
   }
 
   if (rows.length < 1) {
-    throw new ClientError('User not found', 404);
+    throw new NotFoundError('User not found');
   }
 
   return rows[0];
+};
+
+export const deleteUserService = async (id) => {
+  const { id: userId } = validate(getUserByIdValidation, id);
+
+  await getUserByIdService(id);
+
+  const query = {
+    text: 'DELETE FROM users WHERE id = $1',
+    values: [userId],
+  };
+
+  await database.query(query);
 };
 
 const _updatePasswordService = async (id, password) => {
